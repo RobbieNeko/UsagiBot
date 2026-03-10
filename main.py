@@ -132,16 +132,19 @@ async def warn(interaction: discord.Interaction, user: discord.Member, reason: s
         js[user.id] = warnings
         json.dump(js, file)
     await interaction.response.send_message(f"Warned {user.display_name}!", ephemeral=True)
-
-@bot.command()
-async def sync(ctx):
-    # Only the owner(s) should be able to do this
-    # Necessary for slash commands to populate
-    if bot.is_owner(ctx.author):
-        await bot.tree.sync()
-
+    
 @bot.event
 async def on_message(message: discord.Message):
+    # Handle actual commands, because this is probably eating the normal way to define them
+    if message.content.startswith("u!"):
+        if message.content == "u!sync":
+            print("Attempting to sync slash commands")
+            # Only the owner(s) should be able to do this
+            # Necessary for slash commands to populate
+            if bot.is_owner(message.author):
+                await bot.tree.sync()
+        return
+
     # Handles reaction triggers
     # Only the first found trigger occurs
     for trigger in REACTION_TRIGGERS:
