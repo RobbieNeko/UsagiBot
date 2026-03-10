@@ -135,6 +135,9 @@ async def warn(interaction: discord.Interaction, user: discord.Member, reason: s
     
 @bot.event
 async def on_message(message: discord.Message):
+    # Do not recursively trigger ourselves, or get triggered by other bots
+    if message.author.bot:
+        return
     # Handle actual commands, because this is probably eating the normal way to define them
     if message.content.startswith("u!"):
         if message.content == "u!sync":
