@@ -45,6 +45,7 @@ async def about(interaction: discord.Interaction):
     info.add_field(name="Developer(s)", value="RosaAeterna (aka NekoRobbie), RibbonTeaDream")
     info.add_field(name="Library", value="Discord.py")
     info.add_field(name="License", value="GNU AGPL v3")
+    info.add_field(name="Version", value="0.0.1-a")
     await interaction.response.send_message(embed=info)
 
 @bot.tree.command()
@@ -163,5 +164,11 @@ async def on_message(message: discord.Message):
             else:
                 await message.channel.send(content=text)
                 return
+
+# Add custom status!
+@bot.event
+async def on_ready():
+    print('USAGI online!')
+    await bot.change_presence(activity=discord.CustomActivity(name='Patrolling the celestia library! | <3 to you all!', emoji='⭐'))
 
 bot.run(BOT_TOKEN)
