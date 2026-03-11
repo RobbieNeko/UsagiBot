@@ -102,6 +102,11 @@ async def removereactiontrigger(interaction: discord.Interaction, trigger: str):
     await interaction.response.send_message("Could not find the specified trigger!", ephemeral=True)
 
 @bot.tree.command()
+async def source(interaction: discord.Interaction):
+    """Get a link to the source code!"""
+    await interaction.response.send_message(f"Here's my source code!\n{SOURCE_CODE_URL}")
+
+@bot.tree.command()
 @discord.app_commands.default_permissions(moderate_members=True)
 @discord.app_commands.checks.has_permissions(moderate_members=True)
 @discord.app_commands.describe(length="The integer number of minutes you want to time someone out for")
