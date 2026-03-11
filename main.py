@@ -2,7 +2,6 @@ import discord
 from discord.ext import commands
 import aiohttp
 
-from io import BytesIO
 import datetime
 import json
 import os
@@ -43,10 +42,20 @@ with open("./config.json") as file:
     config = json.load(file)
     BOT_TOKEN = config['bot_token']
 
+# Class added for customizability, namely the setup hook override
+class UsagiBot(commands.Bot):
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    async def setup_hook(self):
+        # Sets things up, namely the global session
+        self.session = aiohttp.ClientSession()
+
 intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
-bot = commands.Bot(command_prefix="u!", intents=intents)
+bot = UsagiBot(command_prefix="u!", intents=intents)
 
 @bot.tree.command()
 async def about(interaction: discord.Interaction):
@@ -174,15 +183,12 @@ async def on_message(message: discord.Message):
         if trigger["trigger"] in message.content:
             text: str | None = None if trigger["message"] == '' else trigger["message"]
             if trigger["image"] != '':
-                async with aiohttp.ClientSession() as session:
-                    async with session.get(trigger["image"]) as response:
-                        buffer = BytesIO(await response.read())
-                        file = discord.File(fp=buffer, filename="reaction.png")
-                await message.channel.send(content=text, file=file)
-                return
-            else:
-                await message.channel.send(content=text)
-                return
+                file = await getImageFromURL(bot.session, trigger["image"], "reaction")
+                if (file != None):
+                    await message.channel.send(content=text, file=file)
+                    return
+            await message.channel.send(content=text)
+            return
 
 # Add custom status!
 @bot.event
