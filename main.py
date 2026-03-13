@@ -90,7 +90,10 @@ async def ban(interaction: discord.Interaction, user: discord.Member, reason: st
     if type(channel) == discord.TextChannel:
         embed = modlogEmbed("ban", user, interaction.user, reason)
         await channel.send(embed=embed)
-    await user.send(f"You have been banned from {interaction.guild}!{f"\n{reason}" if reason != None else ''}")
+    try:
+        await user.send(f"You have been banned from {interaction.guild}!{f"\n{reason}" if reason != None else ''}")
+    except:
+        print(f"Could not DM {user.name}")
     await user.ban(reason=reason)
     await interaction.response.send_message(f"Banned {user.display_name}!", ephemeral=True)
 
@@ -128,7 +131,10 @@ async def kick(interaction: discord.Interaction, user: discord.Member, reason: s
     if type(channel) == discord.TextChannel:
         embed = modlogEmbed("kick", user, interaction.user, reason)
         await channel.send(embed=embed)
-    await user.send(f"You have been kicked from {interaction.guild}!{f"\n{reason}" if reason != None else ''}")
+    try:
+        await user.send(f"You have been kicked from {interaction.guild}!{f"\n{reason}" if reason != None else ''}")
+    except:
+        print(f"Could not DM {user.name}")
     await user.kick(reason=reason)
     await interaction.response.send_message(f"Kicked {user.display_name}!", ephemeral=True)
 
@@ -179,7 +185,10 @@ async def timeout(interaction: discord.Interaction, user: discord.Member, length
     if type(channel) == discord.TextChannel:
         embed = modlogEmbed("timeout", user, interaction.user, reason)
         await channel.send(embed=embed)
-    await user.send(f"You have been timed out from {interaction.guild} for {length} minute(s)!{f"\n{reason}" if reason != None else ''}")
+    try:
+        await user.send(f"You have been timed out from {interaction.guild} for {length} minute(s)!{f"\n{reason}" if reason != None else ''}")
+    except:
+        print(f"Could not DM {user.name}")
     await user.timeout(delta, reason=reason)
     await interaction.response.send_message(f"Timed out {user.display_name} for {length} minute(s)!", ephemeral=True)
 
@@ -192,7 +201,10 @@ async def warn(interaction: discord.Interaction, user: discord.Member, reason: s
     if type(channel) == discord.TextChannel:
         embed = modlogEmbed("warn", user, interaction.user, reason)
         await channel.send(embed=embed)
-    await user.send(f"You have been warned in {interaction.guild}!\n{reason}")
+    try:
+        await user.send(f"You have been warned in {interaction.guild}!\n{reason}")
+    except:
+        print(f"Could not DM {user.name}")
     # This is TECHNICALLY blocking, but async file handling doesn't really work
     # And this is being run on a single core system so threaded approaches probably don't work any better
     file = open("./warnlog.json")
