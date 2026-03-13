@@ -87,8 +87,8 @@ async def addreactiontrigger(interaction: discord.Interaction, trigger: str, mes
 async def ban(interaction: discord.Interaction, user: discord.Member, reason: str | None = None):
     """Bans a user from the guild, sending a DM to them as well as putting it in the mod log"""
     channel = bot.get_channel(MODLOG_CHANNEL_ID)
-    embed = modlogEmbed("ban", user, interaction.user, reason)
     if type(channel) == discord.TextChannel:
+        embed = modlogEmbed("ban", user, interaction.user, reason)
         await channel.send(embed=embed)
     await user.send(f"You have been banned from {interaction.guild}!{f"\n{reason}" if reason != None else ''}")
     await user.ban(reason=reason)
@@ -120,8 +120,8 @@ async def clearwarnings(interaction: discord.Interaction, user: discord.Member):
 async def kick(interaction: discord.Interaction, user: discord.Member, reason: str | None = None):
     """Kicks a user from the guild, sending a DM to them as well as putting it in the mod log"""
     channel = bot.get_channel(MODLOG_CHANNEL_ID)
-    embed = modlogEmbed("kick", user, interaction.user, reason)
     if type(channel) == discord.TextChannel:
+        embed = modlogEmbed("kick", user, interaction.user, reason)
         await channel.send(embed=embed)
     await user.send(f"You have been kicked from {interaction.guild}!{f"\n{reason}" if reason != None else ''}")
     await user.kick(reason=reason)
@@ -171,8 +171,8 @@ async def timeout(interaction: discord.Interaction, user: discord.Member, length
     """Applies a timeout to the user in the guild, sending a DM to them as well as putting it in the mod log"""
     delta = datetime.timedelta(minutes=int(length))
     channel = bot.get_channel(MODLOG_CHANNEL_ID)
-    embed = modlogEmbed("timeout", user, interaction.user, reason)
     if type(channel) == discord.TextChannel:
+        embed = modlogEmbed("timeout", user, interaction.user, reason)
         await channel.send(embed=embed)
     await user.send(f"You have been timed out from {interaction.guild} for {length} minute(s)!{f"\n{reason}" if reason != None else ''}")
     await user.timeout(delta, reason=reason)
@@ -184,8 +184,8 @@ async def timeout(interaction: discord.Interaction, user: discord.Member, length
 async def warn(interaction: discord.Interaction, user: discord.Member, reason: str):
     """Warns a user in the guild, sending a DM to them as well as putting it in the mod log. Also logs the warning in a file to keep track."""
     channel = bot.get_channel(MODLOG_CHANNEL_ID)
-    embed = modlogEmbed("warn", user, interaction.user, reason)
     if type(channel) == discord.TextChannel:
+        embed = modlogEmbed("warn", user, interaction.user, reason)
         await channel.send(embed=embed)
     await user.send(f"You have been warned in {interaction.guild}!\n{reason}")
     # This is TECHNICALLY blocking, but async file handling doesn't really work
