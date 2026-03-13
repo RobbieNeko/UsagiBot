@@ -64,7 +64,7 @@ async def about(interaction: discord.Interaction):
     info.add_field(name="Developer(s)", value="RosaAeterna (aka NekoRobbie), RibbonTeaDream")
     info.add_field(name="Library", value="Discord.py")
     info.add_field(name="License", value="GNU AGPL v3")
-    info.add_field(name="Version", value="0.0.2-a")
+    info.add_field(name="Version", value="0.0.2-b")
     await interaction.response.send_message(embed=info)
 
 @bot.tree.command()
@@ -76,8 +76,8 @@ async def about(interaction: discord.Interaction):
 async def addreactiontrigger(interaction: discord.Interaction, trigger: str, message: str | None = None, image: str | None = None):
     """Adds a trigger to react to specific message content with a predefined message and/or image"""
     newTrigger = {"trigger": trigger, "message": message if message != None else '', 'image': image if image != None else '' }
+    REACTION_TRIGGERS.append(newTrigger)
     with open("./reactiontriggers.json", 'w') as file:
-        REACTION_TRIGGERS.append(newTrigger)
         json.dump(REACTION_TRIGGERS, file)
     await interaction.response.send_message(f"Added new trigger for phrase {trigger}!", ephemeral=True)
 
@@ -107,11 +107,16 @@ async def cleartimeout(interaction: discord.Interaction, user: discord.Member):
 @discord.app_commands.checks.has_permissions(moderate_members=True)
 async def clearwarnings(interaction: discord.Interaction, user: discord.Member):
     """Clears the warnings for the given user. (Idempotent)"""
-    with open("./warnlog.json", 'r+') as log:
-        data = json.load(log)
-        # This even works if they aren't already in the log, so is extremely idempotent
-        data[user.id] = []
-        json.dump(data, log)
+    # We're doing this old-school style because it looks cleaner when you have to do it this way
+    log = open("./warnlog.json")
+    data = json.load(log)
+    log.close()
+    log = open("./warnlog.json", 'w')
+    # This even works if they aren't already in the log, so is extremely idempotent
+    data[user.id] = []
+    json.dump(data, log)
+    log.close()
+    
     await interaction.response.send_message(f"Cleared warnings for {user.display_name}")
 
 @bot.tree.command()
@@ -190,12 +195,15 @@ async def warn(interaction: discord.Interaction, user: discord.Member, reason: s
     await user.send(f"You have been warned in {interaction.guild}!\n{reason}")
     # This is TECHNICALLY blocking, but async file handling doesn't really work
     # And this is being run on a single core system so threaded approaches probably don't work any better
-    with open("./warnlog.json", 'r+') as file:
-        js = json.load(file)
-        warnings: list[str] = js[user.id]
-        warnings.append(reason)
-        js[user.id] = warnings
-        json.dump(js, file)
+    file = open("./warnlog.json")
+    js = json.load(file)
+    file.close()
+    warnings: list[str] = js[user.id]
+    warnings.append(reason)
+    js[user.id] = warnings
+    file = open("./warnlog.json", 'w')
+    json.dump(js, file)
+    file.close()
     await interaction.response.send_message(f"Warned {user.display_name}!", ephemeral=True)
     
 @bot.event
