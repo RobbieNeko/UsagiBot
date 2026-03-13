@@ -86,6 +86,11 @@ async def addreactiontrigger(interaction: discord.Interaction, trigger: str, mes
 @discord.app_commands.checks.has_permissions(ban_members=True)
 async def ban(interaction: discord.Interaction, user: discord.Member, reason: str | None = None):
     """Bans a user from the guild, sending a DM to them as well as putting it in the mod log"""
+    author = interaction.user
+    if (type(author) == discord.Member):
+        if(author.roles[-1] <= user.roles[-1]):
+            await interaction.response.send_message(f"You do not have the ability to ban {user.display_name}!", ephemeral=True)
+            return
     channel = bot.get_channel(MODLOG_CHANNEL_ID)
     if type(channel) == discord.TextChannel:
         embed = modlogEmbed("ban", user, interaction.user, reason)
@@ -127,6 +132,11 @@ async def clearwarnings(interaction: discord.Interaction, user: discord.Member):
 @discord.app_commands.checks.has_permissions(kick_members=True)
 async def kick(interaction: discord.Interaction, user: discord.Member, reason: str | None = None):
     """Kicks a user from the guild, sending a DM to them as well as putting it in the mod log"""
+    author = interaction.user
+    if (type(author) == discord.Member):
+        if(author.roles[-1] <= user.roles[-1]):
+            await interaction.response.send_message(f"You do not have the ability to ban {user.display_name}!", ephemeral=True)
+            return
     channel = bot.get_channel(MODLOG_CHANNEL_ID)
     if type(channel) == discord.TextChannel:
         embed = modlogEmbed("kick", user, interaction.user, reason)
@@ -180,6 +190,11 @@ async def source(interaction: discord.Interaction):
 @discord.app_commands.describe(length="The integer number of minutes you want to time someone out for")
 async def timeout(interaction: discord.Interaction, user: discord.Member, length: int, reason: str | None = None):
     """Applies a timeout to the user in the guild, sending a DM to them as well as putting it in the mod log"""
+    author = interaction.user
+    if (type(author) == discord.Member):
+        if(author.roles[-1] <= user.roles[-1]):
+            await interaction.response.send_message(f"You do not have the ability to timeout {user.display_name}!", ephemeral=True)
+            return
     delta = datetime.timedelta(minutes=int(length))
     channel = bot.get_channel(MODLOG_CHANNEL_ID)
     if type(channel) == discord.TextChannel:
