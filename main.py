@@ -95,6 +95,26 @@ async def ban(interaction: discord.Interaction, user: discord.Member, reason: st
     await interaction.response.send_message(f"Banned {user.display_name}!", ephemeral=True)
 
 @bot.tree.command()
+@discord.app_commands.default_permissions(moderate_members=True)
+@discord.app_commands.checks.has_permissions(moderate_members=True)
+async def cleartimeout(interaction: discord.Interaction, user: discord.Member):
+    """Clears the timeout for the given user. (Idempotent)"""
+    await user.timeout(None)
+    await interaction.response.send_message(f"Cleared timeout for {user.display_name}")
+
+@bot.tree.command()
+@discord.app_commands.default_permissions(moderate_members=True)
+@discord.app_commands.checks.has_permissions(moderate_members=True)
+async def clearwarnings(interaction: discord.Interaction, user: discord.Member):
+    """Clears the warnings for the given user. (Idempotent)"""
+    with open("./warnlog.json", 'r+') as log:
+        data = json.load(log)
+        # This even works if they aren't already in the log, so is extremely idempotent
+        data[user.id] = []
+        json.dump(data, log)
+    await interaction.response.send_message(f"Cleared warnings for {user.display_name}")
+
+@bot.tree.command()
 @discord.app_commands.default_permissions(kick_members=True)
 @discord.app_commands.checks.has_permissions(kick_members=True)
 async def kick(interaction: discord.Interaction, user: discord.Member, reason: str | None = None):
