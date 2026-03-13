@@ -24,7 +24,7 @@ USAGI_COLOR: discord.Color = discord.Color.from_rgb(33, 26, 54) # Taken from her
 if not os.path.isfile("./warnlog.json"):
     with open("./warnlog.json", 'w') as file:
         # Makes sure that the file is initialized with a blank dictionary if not found
-        # Actual structure is dict[int, list[str]], where the keys are user IDs
+        # Actual structure is dict[str, list[str]], where the keys are user IDs
         json.dump({}, file)
 
 if not os.path.isfile("./reactiontriggers.json"):
@@ -116,7 +116,7 @@ async def clearwarnings(interaction: discord.Interaction, user: discord.Member):
     log.close()
     log = open("./warnlog.json", 'w')
     # This even works if they aren't already in the log, so is extremely idempotent
-    data[user.id] = []
+    data[str(user.id)] = []
     json.dump(data, log)
     log.close()
     
@@ -145,7 +145,7 @@ async def listwarnings(interaction: discord.Interaction, user: discord.Member):
     """Lists the past warnings for the user in question"""
     with open("./warnlog.json") as log:
         data: dict = json.load(log)
-        warnings: list = data.get(user.id, [])
+        warnings: list = data.get(str(user.id), [])
     if len(warnings) == 0:
         await interaction.response.send_message(f"{user.display_name} does not have any warnings!")
     else:
@@ -208,11 +208,11 @@ async def warn(interaction: discord.Interaction, user: discord.Member, reason: s
     # This is TECHNICALLY blocking, but async file handling doesn't really work
     # And this is being run on a single core system so threaded approaches probably don't work any better
     file = open("./warnlog.json")
-    js = json.load(file)
+    js: dict = json.load(file)
     file.close()
-    warnings: list[str] = js[user.id]
+    warnings: list[str] = js.get(str(user.id), [])
     warnings.append(reason)
-    js[user.id] = warnings
+    js[str(user.id)] = warnings
     file = open("./warnlog.json", 'w')
     json.dump(js, file)
     file.close()
