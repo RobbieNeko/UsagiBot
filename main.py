@@ -128,6 +128,22 @@ async def kick(interaction: discord.Interaction, user: discord.Member, reason: s
     await interaction.response.send_message(f"Kicked {user.display_name}!", ephemeral=True)
 
 @bot.tree.command()
+@discord.app_commands.default_permissions(moderate_members=True)
+@discord.app_commands.checks.has_permissions(moderate_members=True)
+async def listwarnings(interaction: discord.Interaction, user: discord.Member):
+    """Lists the past warnings for the user in question"""
+    with open("./warnlog.json") as log:
+        data: dict = json.load(log)
+        warnings: list = data.get(user.id, [])
+    if len(warnings) == 0:
+        await interaction.response.send_message(f"{user.display_name} does not have any warnings!")
+    else:
+        response = f"{user.display_name} has {len(warnings)} warnings:"
+        for warning in warnings:
+            response += '\n' + warning
+        await interaction.response.send_message(response)
+
+@bot.tree.command()
 @discord.app_commands.default_permissions(manage_messages=True)
 @discord.app_commands.checks.has_permissions(manage_messages=True)
 @discord.app_commands.describe(trigger="The text which triggers the reaction you want to delete")
