@@ -14,3 +14,7 @@ UsagiBot loosely follows semantic versioning, in particular adopting the style m
 - Z is the patch version, and denotes primarily two types of changes: regular bugfixes, and organizational changes or similar changes that have no effect on the user of the bot.
 - H is the hotfix number, denoting any urgent bugfixes made between patches. Primarily used for the purpose of rapid iteration when a bug can only be caught in live testing.
 In general, we don't expect terribly many major version changes.
+
+## Requirements
+
+The provided requirements.txt should have the extra packages beyond the python standard library that you need in order to run the bot. The exact versions of the dependencies are likely irrelevant (they're just what my venv happened to have), but an important note is that the project needs Python 3.13+ no matter what.
