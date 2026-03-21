@@ -1,3 +1,5 @@
 {
-    "bot_token": "put your bot token here!"
+    "bot_token": "put your bot token here!",
+    "magia_earn_message_delay": 30,
+    "magia_earn_amount": 10
 }

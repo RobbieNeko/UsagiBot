@@ -2,6 +2,7 @@ import discord
 import aiohttp
 
 from io import BytesIO
+import json
 
 """
 Helper functions to keep main.py clean.
@@ -44,4 +45,33 @@ async def getImageFromURL(session: aiohttp.ClientSession, url: str, name: str = 
         else:
             print(f"getImageFromURL: URL {url} returned HTTP {response.status}!")
             return None
-        
+
+def addMagia(id: int, amount: int):
+    """Adds Magia to a given user's balance"""
+    with open("./userdata.json", 'r+') as file:
+        data: dict = json.load(file)
+        # Erase the contents of the file
+        file.truncate(0)
+        # Return pointer to the start of the file
+        file.seek(0)
+        userData: dict = data.get(str(id), {})
+        balance: int = userData.get("balance", 0)
+        balance += amount
+        userData['balance'] = balance
+        data[str(id)] = userData
+        json.dump(data, file)
+
+def removeMagia(id: int, amount: int):
+    """Removes Magia from a given user's balance"""
+    with open("./userdata.json", 'r+') as file:
+        data: dict = json.load(file)
+        # Erase the contents of the file
+        file.truncate(0)
+        # Return pointer to the start of the file
+        file.seek(0)
+        userData: dict = data.get(str(id), {})
+        balance: int = userData.get("balance", 0)
+        balance -= amount
+        userData['balance'] = balance
+        data[str(id)] = userData
+        json.dump(data, file)

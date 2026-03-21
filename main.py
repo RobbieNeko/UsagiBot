@@ -19,6 +19,7 @@ Helper functions should generally not go here, and should instead go in helper_f
 SOURCE_CODE_URL = "https://github.com/RobbieNeko/UsagiBot"
 MODLOG_CHANNEL_ID = 1222257915973599302
 REACTION_TRIGGERS: list
+LAST_MAGIA_MESSAGE: dict[int, datetime.datetime] = {}
 USAGI_COLOR: discord.Color = discord.Color.from_rgb(33, 26, 54) # Taken from her hair
 
 if os.path.isfile("./warnlog.json") and not os.path.isfile("./userdata.json"):
@@ -52,6 +53,8 @@ else:
 with open("./config.json") as file:
     config = json.load(file)
     BOT_TOKEN = config['bot_token']
+    MAGIA_EARN_DELAY: int = config['magia_earn_message_delay']
+    MAGIA_EARN_AMOUNT: int = config['magia_earn_amount']
 
 # Class added for customizability, namely the setup hook override
 class UsagiBot(commands.Bot):
@@ -112,6 +115,17 @@ async def ban(interaction: discord.Interaction, user: discord.Member, reason: st
         print(f"Could not DM {user.name}")
     await user.ban(reason=reason)
     await interaction.response.send_message(f"Banned {user.display_name}!", ephemeral=True)
+
+@bot.tree.command()
+@discord.app_commands.describe(user="User you want to check the balance of (optional, defaults to yourself)")
+async def balance(interaction: discord.Interaction, user: discord.Member | discord.User | None = None):
+    """Shows you the Magia balance of yourself or another member!"""
+    user = user if not (user is None) else interaction.user
+    with open("./userdata.json") as file:
+        data: dict = json.load(file)
+        userData: dict = data.get(str(user.id), {})
+        userBalance: int = userData.get("balance", 0)
+    await interaction.response.send_message(f"{"Your" if user == interaction.user else user.display_name + "'s"} balance is {userBalance} Magia!")
 
 @bot.tree.command()
 @discord.app_commands.default_permissions(moderate_members=True)
@@ -254,6 +268,16 @@ async def on_message(message: discord.Message):
     # Do not recursively trigger ourselves, or get triggered by other bots
     if message.author.bot:
         return
+    
+    # Handle Magia gain for the economy
+    if (message.author.id in LAST_MAGIA_MESSAGE):
+        if (message.created_at - LAST_MAGIA_MESSAGE[message.author.id]).total_seconds() > MAGIA_EARN_DELAY:
+            addMagia(message.author.id, MAGIA_EARN_AMOUNT)
+            LAST_MAGIA_MESSAGE[message.author.id] = datetime.datetime.now()
+    else:
+        addMagia(message.author.id, MAGIA_EARN_AMOUNT)
+        LAST_MAGIA_MESSAGE[message.author.id] = datetime.datetime.now()
+    
     # Handle actual commands, because this is probably eating the normal way to define them
     if message.content.startswith("u!"):
         if message.content == "u!sync":
