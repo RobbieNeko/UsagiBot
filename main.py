@@ -21,8 +21,6 @@ MODLOG_CHANNEL_ID = 1222257915973599302
 REACTION_TRIGGERS: list
 USAGI_COLOR: discord.Color = discord.Color.from_rgb(33, 26, 54) # Taken from her hair
 
-
-
 if os.path.isfile("./warnlog.json") and not os.path.isfile("./userdata.json"):
     with open("./warnlog.json") as old:
         oldData = json.load(old)
@@ -33,7 +31,6 @@ if os.path.isfile("./warnlog.json") and not os.path.isfile("./userdata.json"):
             json.dump(newData, new)
     # Delete old style of file
     os.remove("./warnlog.json")
-            
 
 if not os.path.isfile("./userdata.json"):
     with open("./userdata.json", 'w') as file:
