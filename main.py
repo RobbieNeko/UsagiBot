@@ -21,10 +21,24 @@ MODLOG_CHANNEL_ID = 1222257915973599302
 REACTION_TRIGGERS: list
 USAGI_COLOR: discord.Color = discord.Color.from_rgb(33, 26, 54) # Taken from her hair
 
-if not os.path.isfile("./warnlog.json"):
-    with open("./warnlog.json", 'w') as file:
-        # Makes sure that the file is initialized with a blank dictionary if not found
-        # Actual structure is dict[str, list[str]], where the keys are user IDs
+
+
+if os.path.isfile("./warnlog.json") and not os.path.isfile("./userdata.json"):
+    with open("./warnlog.json") as old:
+        oldData = json.load(old)
+        newData = {}
+        for key, value in oldData:
+            newData[key] = {"warnings": value}
+        with open("./userdata.json", 'w') as new:
+            json.dump(newData, new)
+    # Delete old style of file
+    os.remove("./warnlog.json")
+            
+
+if not os.path.isfile("./userdata.json"):
+    with open("./userdata.json", 'w') as file:
+        # Makes sure that the file is initialized with an empty dict if not found
+        # Actual structure is dict[str, dict[str, Any]], where the keys of the parent dictionary are users, and the child dictionary is data
         json.dump({}, file)
 
 if not os.path.isfile("./reactiontriggers.json"):
