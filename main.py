@@ -115,16 +115,17 @@ async def cleartimeout(interaction: discord.Interaction, user: discord.Member):
 @discord.app_commands.checks.has_permissions(moderate_members=True)
 async def clearwarnings(interaction: discord.Interaction, user: discord.Member):
     """Clears the warnings for the given user. (Idempotent)"""
-    # We're doing this old-school style because it looks cleaner when you have to do it this way
-    log = open("./warnlog.json")
-    data = json.load(log)
-    log.close()
-    log = open("./warnlog.json", 'w')
-    # This even works if they aren't already in the log, so is extremely idempotent
-    data[str(user.id)] = []
-    json.dump(data, log)
-    log.close()
-    
+    with open("./userdata.json", 'r+') as file:
+        data: dict = json.load(file)
+        # Erase the contents of the file
+        file.truncate(0)
+        # Return pointer to the start of the file
+        file.seek(0)
+        # This should work even if they aren't in the data file at all
+        userData: dict = data.get(str(user.id), {})
+        userData["warnings"] = []
+        data[str(user.id)] = userData
+        json.dump(data, file)
     await interaction.response.send_message(f"Cleared warnings for {user.display_name}")
 
 @bot.tree.command()
@@ -153,9 +154,10 @@ async def kick(interaction: discord.Interaction, user: discord.Member, reason: s
 @discord.app_commands.checks.has_permissions(moderate_members=True)
 async def listwarnings(interaction: discord.Interaction, user: discord.Member):
     """Lists the past warnings for the user in question"""
-    with open("./warnlog.json") as log:
-        data: dict = json.load(log)
-        warnings: list = data.get(str(user.id), [])
+    with open("./userdata.json") as file:
+        data: dict = json.load(file)
+        userData: dict = data.get(str(user.id), {})
+        warnings: list = userData.get("warnings", [])
     if len(warnings) == 0:
         await interaction.response.send_message(f"{user.display_name} does not have any warnings!")
     else:
@@ -222,15 +224,18 @@ async def warn(interaction: discord.Interaction, user: discord.Member, reason: s
         print(f"Could not DM {user.name}")
     # This is TECHNICALLY blocking, but async file handling doesn't really work
     # And this is being run on a single core system so threaded approaches probably don't work any better
-    file = open("./warnlog.json")
-    js: dict = json.load(file)
-    file.close()
-    warnings: list[str] = js.get(str(user.id), [])
-    warnings.append(reason)
-    js[str(user.id)] = warnings
-    file = open("./warnlog.json", 'w')
-    json.dump(js, file)
-    file.close()
+    with open("./userdata.json", 'r+') as file:
+        data: dict = json.load(file)
+        # Erase the contents of the file
+        file.truncate(0)
+        # Return pointer to the start of the file
+        file.seek(0)
+        userData: dict = data.get(str(user.id), {})
+        warnings: list = userData.get("warnings", [])
+        warnings.append(reason)
+        userData['warnings'] = warnings
+        data[str(user.id)] = userData
+        json.dump(data, file)
     await interaction.response.send_message(f"Warned {user.display_name}!", ephemeral=True)
     
 @bot.event
