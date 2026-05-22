@@ -55,6 +55,7 @@ with open("./config.json") as file:
     BOT_TOKEN = config['bot_token']
     MAGIA_EARN_DELAY: int = config['magia_earn_message_delay']
     MAGIA_EARN_AMOUNT: int = config['magia_earn_amount']
+    ITEM_DEFINITIONS: list[str] = config['item_definitions_files']
 
 # Class added for customizability, namely the setup hook override
 class UsagiBot(commands.Bot):
@@ -152,6 +153,38 @@ async def clearwarnings(interaction: discord.Interaction, user: discord.Member):
         data[str(user.id)] = userData
         json.dump(data, file)
     await interaction.response.send_message(f"Cleared warnings for {user.display_name}")
+
+@bot.tree.command()
+async def inventory(interaction: discord.Interaction, user: discord.User | discord.Member | None = None):
+    """Lets you view the inventory of yourself or another member!"""
+    if (user is None):
+        user = interaction.user
+    embedTitle = f"{user.display_name}'s Inventory"
+    embedBody = ""
+
+    with open("./userdata.json") as file:
+        data: dict= json.load(file)
+        userData = data.get(str(user.id), {})
+        inventory: dict[str, int] = userData.get("inventory", {})
+        for item in inventory:
+            info = getItemInfo(item, ITEM_DEFINITIONS)
+            if info is None:
+                continue
+            embedBody += f"{inventory[item]}x {info["name"]} (`{item}`)"
+    embed = discord.Embed(title=embedTitle, description=embedBody, color=USAGI_COLOR)
+    await interaction.response.send_message(embed=embed)
+
+@bot.tree.command()
+async def items(interaction: discord.Interaction, item: str):
+    """Displays the info about a given item"""
+    info = getItemInfo(item, ITEM_DEFINITIONS)
+    if info is None:
+        await interaction.response.send_message("I couldn't find that item, sorry!")
+    else:
+        embedBody = f"ID: {item}\nName: {info['name']}\nDescription: {info['description']}\nSell Value: {info['value']}"
+        if isinstance(info['use'], str):
+            embedBody += f"\nUse: {info['use']}"
+        await interaction.response.send_message(embed=discord.Embed(description=embedBody, color=USAGI_COLOR))
 
 @bot.tree.command()
 @discord.app_commands.default_permissions(kick_members=True)
