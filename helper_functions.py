@@ -3,6 +3,7 @@ import aiohttp
 
 from io import BytesIO
 import json
+import random
 
 """
 Helper functions to keep main.py clean.
@@ -75,3 +76,64 @@ def removeMagia(id: int, amount: int):
         userData['balance'] = balance
         data[str(id)] = userData
         json.dump(data, file)
+
+def addItem(id: int, item: str, amount: int = 1):
+    """Adds an item to the user's inventory"""
+    with open("./userdata.json", 'r+') as file:
+        data: dict = json.load(file)
+        # Erase the contents of the file
+        file.truncate(0)
+        # Return pointer to the start of the file
+        file.seek(0)
+        userData: dict = data.get(str(id), {})
+        inventory: dict[str, int] = userData.get("inventory", {})
+        inventory[item] = inventory.get(item, 0) + amount
+        userData['inventory'] = inventory
+        data[str(id)] = userData
+        json.dump(data, file)
+
+def removeItem(id: int, item: str, amount: int = 1):
+    """Removes an item from the user's inventory"""
+    with open("./userdata.json", 'r+') as file:
+        data: dict = json.load(file)
+        # Erase the contents of the file
+        file.truncate(0)
+        # Return pointer to the start of the file
+        file.seek(0)
+        userData: dict = data.get(str(id), {})
+        inventory: dict[str, int] = userData.get("inventory", {})
+        inventory[item] -= amount
+        userData['inventory'] = inventory
+        data[str(id)] = userData
+        json.dump(data, file)
+
+def getItemInfo(item: str, sources:list[str]) -> dict | None:
+    """Gets the item info for an item for the purposes of a description or otherwise displaying it in a more user-friendly format"""
+    for source in sources:
+        with open(source) as file:
+            data: dict = json.load(file)
+            if item in data:
+                return data[item]
+    print(f"Info requested for Unknown Item ID {item}")
+    return None
+
+def gachaPull(filePath: str) -> str:
+    """Handles the process of pulling for an item in the gacha system"""
+    with open(filePath) as gachaFile:
+        data: dict = json.load(gachaFile)
+    # Fillers are miscellaneous books meant to fill in the gaps left by the other books
+    fillers: list[str] = data.pop("FILLER")
+    # How much is taken up by books with specified percentage odds
+    totalPercent = 0
+    options = []
+    weights = []
+    for item in data:
+        options.append(item)
+        weights.append(data[item])
+        totalPercent += data[item]
+    fillerWeight = (100 - totalPercent) / len(fillers)
+    for filler in fillers:
+        options.append(filler)
+        weights.append(fillerWeight)
+    return random.choices(options, weights)[0]
+        
