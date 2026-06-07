@@ -21,6 +21,7 @@ MODLOG_CHANNEL_ID = 1222257915973599302
 REACTION_TRIGGERS: list
 LAST_MAGIA_MESSAGE: dict[int, datetime.datetime] = {}
 USAGI_COLOR: discord.Color = discord.Color.from_rgb(33, 26, 54) # Taken from her hair
+SHOPS: list[str]
 
 if os.path.isfile("./warnlog.json") and not os.path.isfile("./userdata.json"):
     with open("./warnlog.json") as old:
@@ -56,6 +57,15 @@ with open("./config.json") as file:
     MAGIA_EARN_DELAY: int = config['magia_earn_message_delay']
     MAGIA_EARN_AMOUNT: int = config['magia_earn_amount']
     ITEM_DEFINITIONS: list[str] = config['item_definitions_files']
+
+if not os.path.isfile("./shop.json"):
+    with open("./shop.json", 'w') as file:
+        json.dump({}, file)
+    SHOPS = []
+else:
+    with open("./shop.json") as file:
+        data: dict = json.load(file)
+        SHOPS = list(data.keys())
 
 # Class added for customizability, namely the setup hook override
 class UsagiBot(commands.Bot):
@@ -127,6 +137,19 @@ async def balance(interaction: discord.Interaction, user: discord.Member | disco
         userData: dict = data.get(str(user.id), {})
         userBalance: int = userData.get("balance", 0)
     await interaction.response.send_message(f"{"Your" if user == interaction.user else user.display_name + "'s"} balance is {userBalance} Magia!")
+
+@bot.tree.command()
+async def buy(interaction: discord.Interaction, item: str):
+    """Buys an item from the shop!"""
+    with open("./shop.json") as file:
+        data: dict[str, dict[str, int]] = json.load(file)
+        for shop in data.values():
+            if item in shop:
+                addItem(interaction.user.id, item)
+                removeMagia(interaction.user.id, shop[item])
+                await interaction.response.send_message(f"You have bought a(n) {item}!")
+                return
+    await interaction.response.send_message(f"I couldn't find {item} in any of the shops!")
 
 @bot.tree.command()
 @discord.app_commands.default_permissions(moderate_members=True)
@@ -238,6 +261,37 @@ async def removereactiontrigger(interaction: discord.Interaction, trigger: str):
             await interaction.response.send_message("Removed the specified trigger!", ephemeral=True)
             return
     await interaction.response.send_message("Could not find the specified trigger!", ephemeral=True)
+
+@bot.tree.command()
+async def sell(interaction: discord.Interaction, item: str):
+    user = interaction.user
+    with open("./userdata.json") as file:
+        data: dict= json.load(file)
+        userData = data.get(str(user.id), {})
+        inventory: dict[str, int] = userData.get("inventory", {})
+        if inventory.get(item, 0) == 0:
+            await interaction.response.send_message(f"You don't have any {item} to sell!")
+            return
+    itemInfo = getItemInfo(item, ITEM_DEFINITIONS)
+    if itemInfo is None:
+        print(f"User {user.display_name} tried to sell their item {item} without valid definition!")
+        await interaction.response.send_message(f"Uh oh, you appear to have {item}, but I don't know its info!")
+    else:
+        removeItem(user.id, item)
+        addMagia(user.id, itemInfo['value'])
+        await interaction.response.send_message(f"Successfully sold a(n) {item}!")
+
+@bot.tree.command()
+@discord.app_commands.choices(choices = [discord.app_commands.Choice(name=x.upper().replace('_', ' '), value=x) for x in SHOPS])
+async def shop(interaction: discord.Interaction, choices: discord.app_commands.Choice[str]):
+    """Shows the items in a shop to the user!"""
+    with open("./shop.json") as file:
+        data: dict[str, dict[str, int]] = json.load(file)
+        items: dict[str, int] = data[choices.value]
+    embed = discord.Embed(title=f"Shop - {choices.name}")
+    for item, cost in items:
+        embed.add_field(name=item, value=f"Cost: {cost}")
+    await interaction.response.send_message(embed)
 
 @bot.tree.command()
 async def source(interaction: discord.Interaction):
