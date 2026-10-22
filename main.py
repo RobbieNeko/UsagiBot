@@ -8,6 +8,7 @@ import os
 
 # Wildcard because we want to import all the helper functions
 from helper_functions import *
+import use_actions
 
 """
 The main code for the bot.
@@ -320,6 +321,32 @@ async def timeout(interaction: discord.Interaction, user: discord.Member, length
         print(f"Could not DM {user.name}")
     await user.timeout(delta, reason=reason)
     await interaction.response.send_message(f"Timed out {user.display_name} for {length} minute(s)!", ephemeral=True)
+
+@bot.tree.command()
+async def useitem(interaction: discord.Interaction, item: str):
+    """Activates the 'use' function of an item, if present."""
+    # I have no clue what the heck anyone is going to add as a function for the items' uses, so I'm gonna play it safe and assume we need a followup here
+    await interaction.response.defer()
+    with open("./userdata.json") as file:
+        data = json.load(file)
+        userData = data.get(str(interaction.user.id), {})
+        inventory: dict[str, int] = userData.get("inventory", {})
+        if inventory.get(item, 0) == 0:
+            await interaction.followup.send(f"You don't have any {item} to use!")
+            return
+    
+    itemInfo = getItemInfo(item, ITEM_DEFINITIONS)
+    if itemInfo is None:
+        print(f"User {interaction.user.display_name} tried to sell their item {item} without valid definition!")
+        await interaction.followup.send(f"Uh oh, you appear to have {item}, but I don't know its info!")
+    else:
+        useAction = itemInfo.get("use", None)
+        if useAction is None:
+            await interaction.followup.send(f"Your {item} doesn't have a use defined!")
+        else:
+            session = bot.session
+            eval(f"await use_actions.{useAction}")
+            removeItem(interaction.user.id, item)
 
 @bot.tree.command()
 @discord.app_commands.default_permissions(moderate_members=True)
