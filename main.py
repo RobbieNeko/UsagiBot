@@ -23,6 +23,8 @@ REACTION_TRIGGERS: list
 LAST_MAGIA_MESSAGE: dict[int, datetime.datetime] = {}
 USAGI_COLOR: discord.Color = discord.Color.from_rgb(33, 26, 54) # Taken from her hair
 SHOPS: list[str]
+GACHAS: list[str]
+GACHA_COST = 100 # Gachas are assumed to all be the same cost
 
 if os.path.isfile("./warnlog.json") and not os.path.isfile("./userdata.json"):
     with open("./warnlog.json") as old:
@@ -67,6 +69,15 @@ else:
     with open("./shop.json") as file:
         data: dict = json.load(file)
         SHOPS = list(data.keys())
+
+if not os.path.isfile("./gachas.json"):
+    with open("./gachas.json", 'w') as file:
+        json.dump({}, file)
+    GACHAS = []
+else:
+    with open("./gachas.json") as file:
+        data: dict = json.load(file)
+        GACHAS = list(data.keys())
 
 # Class added for customizability, namely the setup hook override
 class UsagiBot(commands.Bot):
@@ -177,6 +188,15 @@ async def clearwarnings(interaction: discord.Interaction, user: discord.Member):
         data[str(user.id)] = userData
         json.dump(data, file)
     await interaction.response.send_message(f"Cleared warnings for {user.display_name}")
+
+@bot.tree.command()
+@discord.app_commands.choices(choices = [discord.app_commands.Choice(name=x.upper().replace('_', ' '), value=x) for x in GACHAS])
+async def gacha(interaction: discord.Interaction, choices: discord.app_commands.Choice[str]):
+    """Lets you make a pull from a gacha!"""
+    result = gachaPull(choices.value)
+    addItem(interaction.user.id, result)
+    removeMagia(interaction.user.id, GACHA_COST)
+    await interaction.response.send_message(f"You pulled a {result}!")
 
 @bot.tree.command()
 async def inventory(interaction: discord.Interaction, user: discord.User | discord.Member | None = None):

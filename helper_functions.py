@@ -117,20 +117,21 @@ def getItemInfo(item: str, sources:list[str]) -> dict | None:
     print(f"Info requested for Unknown Item ID {item}")
     return None
 
-def gachaPull(filePath: str) -> str:
+def gachaPull(gacha: str) -> str:
     """Handles the process of pulling for an item in the gacha system"""
-    with open(filePath) as gachaFile:
+    with open("./gachas.json") as gachaFile:
         data: dict = json.load(gachaFile)
+        chosen: dict = data[gacha]
     # Fillers are miscellaneous books meant to fill in the gaps left by the other books
-    fillers: list[str] = data.pop("FILLER")
+    fillers: list[str] = chosen.pop("FILLER")
     # How much is taken up by books with specified percentage odds
     totalPercent = 0
     options = []
     weights = []
-    for item in data:
+    for item in chosen:
         options.append(item)
-        weights.append(data[item])
-        totalPercent += data[item]
+        weights.append(chosen[item])
+        totalPercent += chosen[item]
     fillerWeight = (100 - totalPercent) / len(fillers)
     for filler in fillers:
         options.append(filler)
