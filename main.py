@@ -101,7 +101,7 @@ async def about(interaction: discord.Interaction):
     info.add_field(name="Developer(s)", value="RosaAeterna (aka NekoRobbie), RibbonTeaDream")
     info.add_field(name="Library", value="Discord.py")
     info.add_field(name="License", value="GNU AGPL v3")
-    info.add_field(name="Version", value="0.0.4-0")
+    info.add_field(name="Version", value="0.0.5-0")
     await interaction.response.send_message(embed=info)
 
 @bot.tree.command()
