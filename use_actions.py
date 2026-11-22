@@ -11,7 +11,8 @@ Available parameters (i.e. things you can include in the parameters and have it 
 - `interaction` (discord.Interaction, i.e. the use of the command itself)
   - In order to send messages with the interaction, use interaction.followup.send (and the like)
 - `session` (aiohttp session)
-- anything global in here or in main.py
+- anything global in main.py
+You can also use global things in here for the body of the function
 More parameters can be added in the actual function over in main.py
 The full function name + parameters should be in the item info
 """

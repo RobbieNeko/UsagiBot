@@ -357,7 +357,7 @@ async def useitem(interaction: discord.Interaction, item: str):
     
     itemInfo = getItemInfo(item, ITEM_DEFINITIONS)
     if itemInfo is None:
-        print(f"User {interaction.user.display_name} tried to sell their item {item} without valid definition!")
+        print(f"User {interaction.user.display_name} tried to use their item {item} without valid definition!")
         await interaction.followup.send(f"Uh oh, you appear to have {item}, but I don't know its info!")
     else:
         useAction = itemInfo.get("use", None)
