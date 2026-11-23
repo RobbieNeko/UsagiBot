@@ -19,7 +19,7 @@ Helper functions should generally not go here, and should instead go in helper_f
 
 #Change this to whatever your source code's link is, if you run a modified version
 SOURCE_CODE_URL = "https://github.com/RobbieNeko/UsagiBot"
-VERSION_TAG = "0.0.6-1"
+VERSION_TAG = "0.0.6-2"
 MODLOG_CHANNEL_ID = 1222257915973599302
 REACTION_TRIGGERS: list
 LAST_MAGIA_MESSAGE: dict[int, datetime.datetime] = {}
