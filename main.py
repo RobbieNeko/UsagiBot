@@ -5,6 +5,7 @@ import aiohttp
 import datetime
 import json
 import os
+from enum import Enum
 
 # Wildcard because we want to import all the helper functions
 from helper_functions import *
@@ -18,6 +19,7 @@ Helper functions should generally not go here, and should instead go in helper_f
 
 #Change this to whatever your source code's link is, if you run a modified version
 SOURCE_CODE_URL = "https://github.com/RobbieNeko/UsagiBot"
+VERSION_TAG = "0.0.5-3"
 MODLOG_CHANNEL_ID = 1222257915973599302
 REACTION_TRIGGERS: list
 LAST_MAGIA_MESSAGE: dict[int, datetime.datetime] = {}
@@ -69,6 +71,7 @@ else:
     with open("./shop.json") as file:
         data: dict = json.load(file)
         SHOPS = list(data.keys())
+        SHOPS_ENUM = Enum('Shops', SHOPS)
 
 if not os.path.isfile("./gachas.json"):
     with open("./gachas.json", 'w') as file:
@@ -78,6 +81,7 @@ else:
     with open("./gachas.json") as file:
         data: dict = json.load(file)
         GACHAS = list(data.keys())
+        GACHAS_ENUM = Enum('Gachas', GACHAS)
 
 # Class added for customizability, namely the setup hook override
 class UsagiBot(commands.Bot):
@@ -101,7 +105,7 @@ async def about(interaction: discord.Interaction):
     info.add_field(name="Developer(s)", value="RosaAeterna (aka NekoRobbie), RibbonTeaDream")
     info.add_field(name="Library", value="Discord.py")
     info.add_field(name="License", value="GNU AGPL v3")
-    info.add_field(name="Version", value="0.0.5-0")
+    info.add_field(name="Version", value=VERSION_TAG)
     await interaction.response.send_message(embed=info)
 
 @bot.tree.command()
@@ -190,10 +194,9 @@ async def clearwarnings(interaction: discord.Interaction, user: discord.Member):
     await interaction.response.send_message(f"Cleared warnings for {user.display_name}")
 
 @bot.tree.command()
-@discord.app_commands.choices(choices = [discord.app_commands.Choice(name=x.upper().replace('_', ' '), value=x) for x in GACHAS])
-async def gacha(interaction: discord.Interaction, choices: discord.app_commands.Choice[str]):
+async def gacha(interaction: discord.Interaction, gacha: GACHAS_ENUM):
     """Lets you make a pull from a gacha!"""
-    result = gachaPull(choices.value)
+    result = gachaPull(gacha.name)
     addItem(interaction.user.id, result)
     removeMagia(interaction.user.id, GACHA_COST)
     await interaction.response.send_message(f"You pulled a {result}!")
@@ -303,13 +306,12 @@ async def sell(interaction: discord.Interaction, item: str):
         await interaction.response.send_message(f"Successfully sold a(n) {item}!")
 
 @bot.tree.command()
-@discord.app_commands.choices(choices = [discord.app_commands.Choice(name=x.upper().replace('_', ' '), value=x) for x in SHOPS])
-async def shop(interaction: discord.Interaction, choices: discord.app_commands.Choice[str]):
+async def shop(interaction: discord.Interaction, choice: SHOPS_ENUM):
     """Shows the items in a shop to the user!"""
     with open("./shop.json") as file:
         data: dict[str, dict[str, int]] = json.load(file)
-        items: dict[str, int] = data[choices.value]
-    embed = discord.Embed(title=f"Shop - {choices.name}")
+        items: dict[str, int] = data[choice.name]
+    embed = discord.Embed(title=f"Shop - {choice.name.title()}")
     for item, cost in items:
         embed.add_field(name=item, value=f"Cost: {cost}")
     await interaction.response.send_message(embed)
@@ -407,10 +409,10 @@ async def on_message(message: discord.Message):
     if (message.author.id in LAST_MAGIA_MESSAGE):
         if (message.created_at - LAST_MAGIA_MESSAGE[message.author.id]).total_seconds() > MAGIA_EARN_DELAY:
             addMagia(message.author.id, MAGIA_EARN_AMOUNT)
-            LAST_MAGIA_MESSAGE[message.author.id] = datetime.datetime.now()
+            LAST_MAGIA_MESSAGE[message.author.id] = datetime.datetime.now(datetime.timezone.utc)
     else:
         addMagia(message.author.id, MAGIA_EARN_AMOUNT)
-        LAST_MAGIA_MESSAGE[message.author.id] = datetime.datetime.now()
+        LAST_MAGIA_MESSAGE[message.author.id] = datetime.datetime.now(datetime.timezone.utc)
     
     # Handle actual commands, because this is probably eating the normal way to define them
     if message.content.startswith("u!"):
