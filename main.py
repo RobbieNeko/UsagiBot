@@ -371,7 +371,7 @@ async def useitem(interaction: discord.Interaction, item: str):
             await interaction.followup.send(f"Your {item} doesn't have a use defined!")
         else:
             session = bot.session
-            eval(f"await use_actions.{useAction}")
+            await eval(f"use_actions.{useAction}")
             removeItem(interaction.user.id, item)
 
 @bot.tree.command()
