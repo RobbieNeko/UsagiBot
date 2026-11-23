@@ -19,7 +19,7 @@ Helper functions should generally not go here, and should instead go in helper_f
 
 #Change this to whatever your source code's link is, if you run a modified version
 SOURCE_CODE_URL = "https://github.com/RobbieNeko/UsagiBot"
-VERSION_TAG = "0.0.5-3"
+VERSION_TAG = "0.0.6-0"
 MODLOG_CHANNEL_ID = 1222257915973599302
 REACTION_TRIGGERS: list
 LAST_MAGIA_MESSAGE: dict[int, datetime.datetime] = {}
@@ -148,10 +148,7 @@ async def ban(interaction: discord.Interaction, user: discord.Member, reason: st
 async def balance(interaction: discord.Interaction, user: discord.Member | discord.User | None = None):
     """Shows you the Magia balance of yourself or another member!"""
     user = user if not (user is None) else interaction.user
-    with open("./userdata.json") as file:
-        data: dict = json.load(file)
-        userData: dict = data.get(str(user.id), {})
-        userBalance: int = userData.get("balance", 0)
+    userBalance = getUserBalance(user.id)
     await interaction.response.send_message(f"{"Your" if user == interaction.user else user.display_name + "'s"} balance is {userBalance} Magia!")
 
 @bot.tree.command()
@@ -161,6 +158,10 @@ async def buy(interaction: discord.Interaction, item: str):
         data: dict[str, dict[str, int]] = json.load(file)
         for shop in data.values():
             if item in shop:
+                userBalance = getUserBalance(interaction.user.id)
+                if (shop[item] > userBalance):
+                    await interaction.response.send_message(f"You don't have enough Magia to buy a(n) {item}! ({shop[item]} required)")
+                    return
                 addItem(interaction.user.id, item)
                 removeMagia(interaction.user.id, shop[item])
                 await interaction.response.send_message(f"You have bought a(n) {item}!")
@@ -196,6 +197,9 @@ async def clearwarnings(interaction: discord.Interaction, user: discord.Member):
 @bot.tree.command()
 async def gacha(interaction: discord.Interaction, gacha: GACHAS_ENUM):
     """Lets you make a pull from a gacha!"""
+    if (GACHA_COST > getUserBalance(interaction.user.id)):
+        await interaction.response.send_message(f"You need {GACHA_COST} Magia to make a gacha pull!")
+        return
     result = gachaPull(gacha.name)
     addItem(interaction.user.id, result)
     removeMagia(interaction.user.id, GACHA_COST)

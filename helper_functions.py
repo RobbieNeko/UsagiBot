@@ -117,6 +117,14 @@ def getItemInfo(item: str, sources:list[str]) -> dict | None:
     print(f"Info requested for Unknown Item ID {item}")
     return None
 
+def getUserBalance(id: int) -> int:
+    """Gets the user's balance from userdata.json"""
+    with open("./userdata.json") as file:
+        data: dict = json.load(file)
+        userData: dict = data.get(str(id), {})
+        userBalance: int = userData.get("balance", 0)
+    return userBalance
+
 def gachaPull(gacha: str) -> str:
     """Handles the process of pulling for an item in the gacha system"""
     with open("./gachas.json") as gachaFile:
