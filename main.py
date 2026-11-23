@@ -19,7 +19,7 @@ Helper functions should generally not go here, and should instead go in helper_f
 
 #Change this to whatever your source code's link is, if you run a modified version
 SOURCE_CODE_URL = "https://github.com/RobbieNeko/UsagiBot"
-VERSION_TAG = "0.0.6-0"
+VERSION_TAG = "0.0.6-1"
 MODLOG_CHANNEL_ID = 1222257915973599302
 REACTION_TRIGGERS: list
 LAST_MAGIA_MESSAGE: dict[int, datetime.datetime] = {}
@@ -316,9 +316,9 @@ async def shop(interaction: discord.Interaction, choice: SHOPS_ENUM):
         data: dict[str, dict[str, int]] = json.load(file)
         items: dict[str, int] = data[choice.name]
     embed = discord.Embed(title=f"Shop - {choice.name.title()}")
-    for item, cost in items:
+    for item, cost in items.items():
         embed.add_field(name=item, value=f"Cost: {cost}")
-    await interaction.response.send_message(embed)
+    await interaction.response.send_message(embed=embed)
 
 @bot.tree.command()
 async def source(interaction: discord.Interaction):
