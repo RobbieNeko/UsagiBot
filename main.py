@@ -420,12 +420,27 @@ async def on_message(message: discord.Message):
     
     # Handle actual commands, because this is probably eating the normal way to define them
     if message.content.startswith("u!"):
-        if message.content == "u!sync":
-            print("Attempting to sync slash commands")
-            # Only the owner(s) should be able to do this
-            # Necessary for slash commands to populate
-            if bot.is_owner(message.author):
+        if bot.is_owner(message.author):
+            if message.content == "u!sync":
+                print("Attempting to sync slash commands")
+                # Necessary for slash commands to populate
                 await bot.tree.sync()
+            elif message.content.startswith("u!addmagia"):
+                user, amount = message.content.split()[1:]
+                userID = message.guild.get_member_named(user).id  # pyright: ignore[reportOptionalMemberAccess]
+                addMagia(userID, int(amount))
+            elif message.content.startswith("u!removemagia"):
+                user, amount = message.content.split()[1:]
+                userID = message.guild.get_member_named(user).id  # pyright: ignore[reportOptionalMemberAccess]
+                removeMagia(userID, int(amount))
+            elif message.content.startswith("u!additem"):
+                user, item, amount = message.content.split()[1:]
+                userID = message.guild.get_member_named(user).id  # pyright: ignore[reportOptionalMemberAccess]
+                addItem(userID, item, int(amount))
+            elif message.content.startswith("u!removeitem"):
+                user, item, amount = message.content.split()[1:]
+                userID = message.guild.get_member_named(user).id  # pyright: ignore[reportOptionalMemberAccess]
+                removeItem(userID, item, int(amount))
         return
 
     # Handles reaction triggers
